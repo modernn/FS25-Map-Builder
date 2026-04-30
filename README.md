@@ -29,6 +29,8 @@ From a clone of this repo:
 .\scripts\install.ps1 -Target both -Scope user
 ```
 
+Use user scope for normal Codex and Claude Code command discovery. Do not also install the same `fs25*` command skills into a project unless you are intentionally testing a local skill copy; user-scope plus project-scope installs can show duplicate command entries.
+
 Install into a specific project instead:
 
 ```powershell
@@ -83,4 +85,3 @@ When the active map project improves the workflow, sync the skills back into thi
 ```
 
 Review the diff, then commit and push.
-
