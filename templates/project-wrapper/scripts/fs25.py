@@ -212,15 +212,17 @@ SLICES: tuple[Slice, ...] = (
                 "--no-public-local",
                 "--include-essential-locals",
                 "--smooth-window-m",
-                "96",
+                "220",
                 "--max-grade",
-                "0.04",
+                "0.02",
                 "--edge-blend-m",
-                "8",
+                "12",
                 "--center-radius-m",
-                "5",
+                "14",
                 "--max-adjust-m",
-                "6",
+                "12",
+                "--post-smooth-passes",
+                "4",
                 "--apply-build",
             ),
             py_cmd(
@@ -311,6 +313,14 @@ SLICES: tuple[Slice, ...] = (
         "Package and static QA",
         "Package the preview zip and run package/player-visible QA.",
         (
+            py_cmd("scripts/fix_preview_map_boundaries.py"),
+            py_cmd(
+                "scripts/fix_preview_local_references.py",
+                "--map-dir",
+                "build/focused_butte_4km",
+                "--doc",
+                "docs/local_reference_fixes.md",
+            ),
             py_cmd(
                 "scripts/package_preview_zip.py",
                 "--root",
@@ -381,6 +391,26 @@ def file_exists(path: str | Path) -> bool:
     return repo_path(path).exists()
 
 
+REQUIRED_LOCAL_REFERENCE_MASKS = (
+    "GEN_forestBorders.png",
+    "GEN_forestUPDT.png",
+    "GEN_meadowUPDT.png",
+    "GEN_roadsMask.png",
+    "GEN_slopeMask.png",
+    "PG_bushLand.png",
+    "PG_forest.png",
+    "PG_meadow.png",
+)
+
+
+def translation_for_named_node(text: str, tag: str, name: str) -> str | None:
+    pattern = rf'<{tag}\b[^>]*\bname="{re.escape(name)}"[^>]*\btranslation="([^"]+)"'
+    match = re.search(pattern, text)
+    if not match:
+        return None
+    return " ".join(match.group(1).split())
+
+
 def zip_matches_install(profile_zip: Path, mods_dir: Path) -> bool:
     installed = mods_dir / profile_zip.name
     if not profile_zip.exists() or not installed.exists():
@@ -449,16 +479,49 @@ def gate_placeables(_: Path) -> bool:
     )
 
 
-def gate_bounds(_: Path) -> bool:
-    return file_exists("docs/local_reference_fixes.md") and file_exists(
-        "build/focused_butte_4km/assets/map_bounds/map_bounds.i3d"
+def gate_bounds(profile_path: Path) -> bool:
+    profile = load_profile(profile_path)
+    map_i3d = profile.build_dir / "map" / "map.i3d"
+    bounds_i3d = profile.build_dir / "assets" / "map_bounds" / "map_bounds.i3d"
+    masks_dir = profile.build_dir / "map" / "data" / "masks"
+    if not file_exists("docs/local_reference_fixes.md") or not map_i3d.exists() or not bounds_i3d.exists():
+        return False
+    if not all((masks_dir / name).exists() for name in REQUIRED_LOCAL_REFERENCE_MASKS):
+        return False
+    map_text = map_i3d.read_text(encoding="utf-8", errors="replace")
+    bounds_text = bounds_i3d.read_text(encoding="utf-8", errors="replace")
+    return (
+        'externalShapesFile="map.i3d.shapes"' not in map_text
+        and translation_for_named_node(map_text, "ReferenceNode", "mapbounds") == "0 0 0"
+        and translation_for_named_node(bounds_text, "TransformGroup", "mapbounds") == "0 0 0"
     )
 
 
 def gate_package(profile_path: Path) -> bool:
+    from scripts.audit_preview_package import audit_zip
+
     profile = load_profile(profile_path)
+    if not profile.preview_zip.exists():
+        return False
+    package_inputs = [
+        profile.build_dir / "map" / "map.i3d",
+        profile.build_dir / "map" / "map.xml",
+        profile.build_dir / "map" / "data" / "dem.png",
+        profile.build_dir / "background" / "FULL.png",
+        profile.build_dir / "map" / "config" / "placeables.xml",
+        profile.build_dir / "assets" / "map_bounds" / "map_bounds.i3d",
+        profile.build_dir / "assets" / "map_bounds" / "map_bounds.i3d.shapes",
+    ]
+    package_inputs.extend(
+        profile.build_dir / "map" / "data" / "masks" / name for name in REQUIRED_LOCAL_REFERENCE_MASKS
+    )
+    existing_inputs = [path for path in package_inputs if path.exists()]
+    if existing_inputs and profile.preview_zip.stat().st_mtime < max(path.stat().st_mtime for path in existing_inputs):
+        return False
+    zip_audit = audit_zip(profile.preview_zip)
     return (
-        profile.preview_zip.exists()
+        bool(zip_audit.get("exists")) and not zip_audit.get("problems")
+        and gate_bounds(profile_path)
         and doc_passes("docs/package_license_audit.md", ("Package audit: PASS", "Manifest/license audit: PASS"))
         and doc_passes("docs/player_visible_qa.md", ("Result: PASS", "PASS"))
     )
