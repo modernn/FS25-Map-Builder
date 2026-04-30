@@ -17,6 +17,8 @@ Run the map as small slices:
 4. Stop on failure.
 5. Record evidence before claiming anything is done.
 
+For a new project, use `$fs25-init` first. For an existing project without a wrapper, use `$fs25-adopt` first.
+
 ## Expected Project Wrapper
 
 Prefer a project-local command wrapper:
@@ -32,11 +34,22 @@ Prefer a project-local command wrapper:
 
 If the wrapper is missing, inspect `templates/project-wrapper/` from the FS25-Map-Builder repo and add a project-specific wrapper before creating more command skills.
 
+If the project is not yet configured, run the bundled helper from this skill:
+
+```powershell
+python <this-skill>\scripts\project_setup.py questions --mode init
+python <this-skill>\scripts\project_setup.py init --project <path> --project-name "<name>" --location "<place>" --map-size-m <meters> --center-lat <lat> --center-lon <lon>
+python <this-skill>\scripts\project_setup.py init --project <path> --project-name "<name>" --location "<place>" --map-size-m <meters> --bbox-wgs84-wsen=<west,south,east,north>
+python <this-skill>\scripts\project_setup.py adopt --project <existing-path>
+```
+
 ## Commands
 
 Use the command skills when available:
 
 - `$fs25-next` / `/fs25-next`
+- `$fs25-init` / `/fs25-init`
+- `$fs25-adopt` / `/fs25-adopt`
 - `$fs25-progress` / `/fs25-progress`
 - `$fs25-start` / `/fs25-start`
 - `$fs25-autonomous` / `/fs25-autonomous`
@@ -59,4 +72,3 @@ Each map project should eventually gate:
 - GIANTS Editor and in-game human verification.
 
 If a failure is seen twice manually, add a script or wrapper gate for it.
-

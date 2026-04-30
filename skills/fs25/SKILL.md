@@ -1,6 +1,6 @@
 ---
 name: fs25
-description: "Dispatch FS25 map commands from Codex or Claude Code: next, progress, start, autonomous, run, dry, list, install, and help."
+description: "Dispatch FS25 map commands from Codex or Claude Code: init, adopt, next, progress, start, autonomous, run, dry, list, install, and help."
 ---
 
 # FS25 Command Dispatcher
@@ -9,6 +9,8 @@ If the user gives no subcommand, recommend the next action.
 
 | User command | Run |
 |---|---|
+| `$fs25-init`, `/fs25-init` | use the `fs25-init` guided project setup workflow |
+| `$fs25-adopt`, `/fs25-adopt` | use the `fs25-adopt` existing-project adoption workflow |
 | `$fs25`, `/fs25` | `.\scripts\fs25.ps1 recommend` |
 | `$fs25-next`, `/fs25-next` | `.\scripts\fs25.ps1 recommend` |
 | `$fs25-progress`, `/fs25-progress` | `.\scripts\fs25.ps1 status` |

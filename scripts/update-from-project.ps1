@@ -1,5 +1,5 @@
 param(
-    [string]$ProjectPath = "C:\Claude\FarmSimulatorAlaskaMap"
+    [string]$ProjectPath = (Get-Location).Path
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,6 +9,9 @@ $ProjectRoot = Resolve-Path $ProjectPath
 
 $CommandSkills = @(
     "fs25",
+    "fs25-map-builder",
+    "fs25-init",
+    "fs25-adopt",
     "fs25-next",
     "fs25-progress",
     "fs25-start",
@@ -48,4 +51,3 @@ foreach ($scriptName in @("fs25.ps1", "fs25.py")) {
 
 Write-Host ""
 Write-Host "Sync complete. Review git diff before committing."
-

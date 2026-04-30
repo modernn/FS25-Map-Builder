@@ -9,6 +9,8 @@ This repo started from the Focused Butte Alaska map workflow and is meant to sta
 - Codex skills:
   - `fs25-map-builder`
   - `fs25`
+  - `fs25-init`
+  - `fs25-adopt`
   - `fs25-next`
   - `fs25-progress`
   - `fs25-start`
@@ -42,6 +44,8 @@ Install into a specific project instead:
 After opening a new Codex session in a project with the skills installed:
 
 ```text
+$fs25-init
+$fs25-adopt
 $fs25-next
 $fs25-progress
 $fs25-start
@@ -55,6 +59,8 @@ $fs25-install
 After opening a new Claude Code session:
 
 ```text
+/fs25-init
+/fs25-adopt
 /fs25-next
 /fs25-progress
 /fs25-start
@@ -75,6 +81,10 @@ scripts/fs25.py
 ```
 
 Use `templates/project-wrapper/` as a starter, or keep using the wrapper from the Focused Butte map repo.
+
+For a new project, use `$fs25-init` or `/fs25-init`; it asks the setup questions and creates a brief/profile/bootstrap wrapper.
+
+For an existing project, use `$fs25-adopt` or `/fs25-adopt`; it inspects the repo, keeps existing wrappers/profiles when present, and writes adoption notes.
 
 ## Updating From A Map Project
 
