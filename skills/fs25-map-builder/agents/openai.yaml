@@ -1,0 +1,7 @@
+interface:
+  display_name: "FS25 Map Builder"
+  short_description: "Build and QA FS25 real-world maps"
+  default_prompt: "Use $fs25-next to recommend the next FS25 map build step, then $fs25-start to run it."
+policy:
+  allow_implicit_invocation: true
+

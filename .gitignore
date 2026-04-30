@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+*.zip
+dist/
+node_modules/
+__pycache__/
+.pytest_cache/
+
