@@ -14,7 +14,7 @@ If the user gives no subcommand, recommend the next action.
 | `$fs25`, `/fs25` | `.\scripts\fs25.ps1 recommend` |
 | `$fs25-next`, `/fs25-next` | `.\scripts\fs25.ps1 recommend` |
 | `$fs25-progress`, `/fs25-progress` | `.\scripts\fs25.ps1 status` |
-| `$fs25-start`, `/fs25-start` | `.\scripts\fs25.ps1 start` |
+| `$fs25-start`, `/fs25-start` | `.\scripts\fs25.ps1 start --all` |
 | `$fs25-autonomous`, `/fs25-autonomous` | `.\scripts\fs25.ps1 start --all` |
 | `$fs25-run <slice>`, `/fs25-run <slice>` | `.\scripts\fs25.ps1 run <slice>` |
 | `$fs25-dry <slice>`, `/fs25-dry <slice>` | `.\scripts\fs25.ps1 run <slice> --dry-run` |

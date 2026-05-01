@@ -26,8 +26,8 @@ Prefer a project-local command wrapper:
 ```powershell
 .\scripts\fs25.ps1 recommend
 .\scripts\fs25.ps1 status
-.\scripts\fs25.ps1 start
 .\scripts\fs25.ps1 start --all
+.\scripts\fs25.ps1 start
 .\scripts\fs25.ps1 run <slice-name>
 .\scripts\fs25.ps1 install
 ```

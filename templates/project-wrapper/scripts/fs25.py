@@ -623,7 +623,10 @@ def cmd_status(args: argparse.Namespace) -> int:
         print(f"  {marker:4} {slice_.name}")
     print("")
     print("Recommended next command:")
-    print(f"  .\\scripts\\fs25.ps1 start")
+    if recommendation.automated:
+        print("  .\\scripts\\fs25.ps1 start --all")
+    else:
+        print("  Open FS25 and follow docs\\morning_human_verification.md")
     print("")
     print_slice(recommendation)
     return 0
@@ -634,10 +637,10 @@ def cmd_recommend(args: argparse.Namespace) -> int:
     recommendation = first_recommendation(profile_path)
     print("Recommended next FS25 command:")
     if recommendation.automated:
-        print(f"  .\\scripts\\fs25.ps1 run {recommendation.name}")
+        print("  .\\scripts\\fs25.ps1 start --all")
         print("")
-        print("Or just run:")
-        print("  .\\scripts\\fs25.ps1 start")
+        print("For one slice only:")
+        print(f"  .\\scripts\\fs25.ps1 run {recommendation.name}")
     else:
         print("  Open FS25 and follow docs\\morning_human_verification.md")
     print("")
