@@ -7,7 +7,9 @@ description: "Dispatch FS25 map commands from Codex or Claude Code: init, adopt,
 
 If the user gives no subcommand, recommend the next action.
 
-| User command | Run |
+Policy: wrapper commands are agent-internal. Run them yourself and tell the user what you ran and what happened. Do not present PowerShell commands as user next steps unless the user explicitly asks or a human FS25 test gate is reached.
+
+| User command | Agent action |
 |---|---|
 | `$fs25-init`, `/fs25-init` | use the `fs25-init` guided project setup workflow |
 | `$fs25-adopt`, `/fs25-adopt` | use the `fs25-adopt` existing-project adoption workflow |
@@ -22,4 +24,4 @@ If the user gives no subcommand, recommend the next action.
 | `$fs25-install`, `/fs25-install` | `.\scripts\fs25.ps1 install` |
 | `$fs25-help`, `/fs25-help` | summarize the installed commands |
 
-Keep responses short: command run, result, next command.
+Keep responses short: what the agent ran, result, next agent action or required human action.

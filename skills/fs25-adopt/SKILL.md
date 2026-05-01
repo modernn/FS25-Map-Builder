@@ -34,7 +34,7 @@ If no profile exists, include:
 
 Use `--force` only when the user explicitly wants regenerated files overwritten.
 
-Do not stop by telling the user to run the command. Run it, inspect the output, then summarize the written/kept files and next FS25 command.
+Do not stop by telling the user to run the command. Run it, inspect the output, then summarize the written/kept files and the next agent action.
 
 ## Result
 
@@ -52,4 +52,4 @@ The helper writes or preserves:
 - `.planning/phases/*/PLAN.md`
 - missing bootstrap wrapper files under `scripts/`
 
-After adoption, run or recommend the next wrapper command based on context, usually `.\scripts\fs25.ps1 status` then `.\scripts\fs25.ps1 recommend`.
+After adoption, inspect status/recommendation yourself. Do not present PowerShell wrapper commands as user tasks unless the user explicitly asks for them or the project has reached human verification.

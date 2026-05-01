@@ -7,3 +7,4 @@ description: List FS25 map slices.
 
 Run `.\scripts\fs25.ps1 list`.
 
+Summarize available slices without turning the wrapper commands into user next steps.

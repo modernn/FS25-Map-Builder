@@ -28,7 +28,7 @@ python <project_setup.py> init --project <path> --project-name "<name>" --locati
 
 Use `--bbox-wgs84-wsen=<west,south,east,north>` when the user gives an exact bounding box; the helper derives the center from the bbox if center lat/lon are absent.
 
-Do not stop by telling the user to run the command. Run it, inspect the output, then summarize the created scaffold and next FS25 action.
+Do not stop by telling the user to run the command. Run it, inspect the output, then summarize the created scaffold and next agent action. Do not present PowerShell wrapper commands as user tasks unless the user explicitly asks for them or the project has reached human verification.
 
 ## Result
 

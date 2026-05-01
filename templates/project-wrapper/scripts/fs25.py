@@ -622,36 +622,27 @@ def cmd_status(args: argparse.Namespace) -> int:
         marker = "PASS" if slice_passes(slice_, profile_path) else "NEXT" if slice_.name == recommendation.name else "TODO"
         print(f"  {marker:4} {slice_.name}")
     print("")
-    print("Recommended next command:")
+    print("Recommended next action:")
     if recommendation.automated:
-        print("  .\\scripts\\fs25.ps1 start --all")
+        print("  Agent: continue the automated FS25 build loop.")
     else:
-        print("  Open FS25 and follow docs\\morning_human_verification.md")
+        print("  Human: open FS25 and follow docs\\morning_human_verification.md")
     print("")
-    print_slice(recommendation)
+    print_slice(recommendation, include_commands=False)
     return 0
 
 
 def cmd_recommend(args: argparse.Namespace) -> int:
     profile_path = Path(args.profile)
     recommendation = first_recommendation(profile_path)
-    print("Recommended next FS25 command:")
+    print("Recommended next FS25 action:")
     if recommendation.automated:
-        print("  .\\scripts\\fs25.ps1 start --all")
-        print("")
-        print("For one slice only:")
-        print(f"  .\\scripts\\fs25.ps1 run {recommendation.name}")
+        print("  Agent: continue the automated FS25 build loop.")
+        print("  Human: no action needed.")
     else:
-        print("  Open FS25 and follow docs\\morning_human_verification.md")
+        print("  Human: open FS25 and follow docs\\morning_human_verification.md")
     print("")
-    print_slice(recommendation)
-    print("")
-    print("Useful commands:")
-    print("  .\\scripts\\fs25.ps1 status")
-    print("  .\\scripts\\fs25.ps1 list")
-    print("  .\\scripts\\fs25.ps1 run <slice-name>")
-    print("  .\\scripts\\fs25.ps1 start --all")
-    print("  .\\scripts\\fs25.ps1 install")
+    print_slice(recommendation, include_commands=False)
     return 0
 
 

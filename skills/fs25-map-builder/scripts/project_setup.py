@@ -227,20 +227,18 @@ def cmd_status(_: argparse.Namespace) -> int:
         marker = "HUMAN" if phase == "human-test" else "TODO"
         print(f"  {marker:5} {phase}")
     print("")
-    print("Next: implement project-specific generators and QA gates in scripts/fs25.py.")
+    print("Next agent action: implement project-specific generators and QA gates in scripts/fs25.py.")
     return 0
 
 
 def cmd_recommend(_: argparse.Namespace) -> int:
     state = load_state()
     print("Recommended next FS25 action:")
-    print("  Work from .planning/STATE.md and .planning/TASKS.md, starting with source-reference.")
+    print("  Agent: work from .planning/STATE.md and .planning/TASKS.md, starting with source-reference.")
+    print("  Human: no action needed unless the agent reaches the human verification gate.")
     print("")
-    print("Useful commands:")
-    print("  .\\scripts\\fs25.ps1 status")
-    print("  .\\scripts\\fs25.ps1 list")
     if state.get("mode") in {"init", "adopt"}:
-        print("  Ask Codex or Claude to run the next planned FS25 slice.")
+        print("Agent note: run wrapper commands directly when they are needed; do not hand them to the user.")
     return 0
 
 
@@ -727,9 +725,9 @@ def docs_milestone_plan_markdown() -> str:
             "",
             "Codex/Claude should use `.planning/STATE.md`, `.planning/TASKS.md`, and `.planning/phases/*/PLAN.md` as the work queue.",
             "",
-            "## Commands",
+            "## Agent Command Policy",
             "",
-            "Ask the agent for `$fs25-progress`, `$fs25-next`, `$fs25-start`, or `$fs25-adopt`; the agent should run the wrapper and summarize results.",
+            "The user may invoke `$fs25-progress`, `$fs25-next`, `$fs25-start`, or `$fs25-adopt`. After that, the agent runs wrapper commands itself and reports what it ran. Do not give PowerShell wrapper commands to the user as next steps unless the user explicitly asks or the gate requires human FS25 testing.",
             "",
             "## Phase Order",
             "",
@@ -970,12 +968,9 @@ def brief_markdown(args: argparse.Namespace, bbox: tuple[float, float, float, fl
             "- Which farmyards/shops need openable placeables and gameplay triggers?",
             "- Which vegetation, crops, seasons, and economy assumptions are region-specific?",
             "",
-            "## Next Commands",
+            "## Next Agent Action",
             "",
-            "```powershell",
-            ".\\scripts\\fs25.ps1 status",
-            ".\\scripts\\fs25.ps1 recommend",
-            "```",
+            "The agent should inspect project state, run the wrapper commands it needs, and report results. The user should only be asked to act at human verification gates.",
             "",
         ]
     )
@@ -1000,11 +995,12 @@ def adoption_markdown(project: Path, signals: dict[str, object], results: list[W
             "",
             *result_lines,
             "",
-            "## Next Steps",
+            "## Next Agent Actions",
             "",
-            "- Run `.\\scripts\\fs25.ps1 status`.",
+            "- Inspect wrapper status directly.",
             "- Replace the bootstrap wrapper with project-specific slices as deterministic generators and QA gates are added.",
             "- Keep raw/reference-only data out of shipped packages unless license provenance is explicit.",
+            "- Do not present PowerShell wrapper commands as user tasks unless the user explicitly asks for them.",
             "",
         ]
     )
