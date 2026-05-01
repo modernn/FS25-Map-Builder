@@ -5,7 +5,7 @@ description: Adopt an existing Farming Simulator 25 map repo into FS25 Map Build
 
 # FS25 Adopt
 
-Attach FS25 Map Builder to an existing project without overwriting useful local work.
+Attach FS25 Map Builder to an existing project without overwriting useful local work. The user runs the Codex/Claude command; the agent runs the helper and reports the result.
 
 ## Workflow
 
@@ -20,7 +20,7 @@ Attach FS25 Map Builder to an existing project without overwriting useful local 
 4. Resolve the helper script:
    - preferred: sibling installed skill `../fs25-map-builder/scripts/project_setup.py`
    - fallback: repo clone `skill-repos/FS25-Map-Builder/skills/fs25-map-builder/scripts/project_setup.py`
-5. Run from anywhere:
+5. Run the helper yourself from anywhere:
 
 ```powershell
 python <project_setup.py> adopt --project <existing-project-path>
@@ -34,13 +34,22 @@ If no profile exists, include:
 
 Use `--force` only when the user explicitly wants regenerated files overwritten.
 
+Do not stop by telling the user to run the command. Run it, inspect the output, then summarize the written/kept files and next FS25 command.
+
 ## Result
 
-The helper writes `docs/fs25_adoption.md`, creates missing bootstrap files, and leaves existing wrappers/profiles in place unless `--force` is used.
+The helper writes or preserves:
 
-After adoption, run:
+- `.fs25-map-builder.json`
+- `docs/fs25_adoption.md`
+- `docs/fs25_project_brief.md`
+- `docs/fs25_map_state.md`
+- `docs/fs25_fix_queue.md`
+- `docs/fs25_gsd_chain.md`
+- `docs/morning_human_verification.md`
+- `.planning/PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, `TASKS.md`
+- `.planning/milestones/fs25-map-ready.md`
+- `.planning/phases/*/PLAN.md`
+- missing bootstrap wrapper files under `scripts/`
 
-```powershell
-.\scripts\fs25.ps1 status
-.\scripts\fs25.ps1 recommend
-```
+After adoption, run or recommend the next wrapper command based on context, usually `.\scripts\fs25.ps1 status` then `.\scripts\fs25.ps1 recommend`.

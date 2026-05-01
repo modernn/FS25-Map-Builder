@@ -18,18 +18,150 @@ from pathlib import Path
 from typing import Iterable
 
 
-DEFAULT_PHASES = (
-    "source-reference",
-    "terrain-heightmap",
-    "base-map",
-    "roads",
-    "fields",
-    "landmarks-shops-farmyards",
-    "vegetation-landscape",
-    "region-systems",
-    "package",
-    "human-test",
+PLANNING_PHASES: tuple[dict[str, object], ...] = (
+    {
+        "slug": "source-reference",
+        "title": "Source Reference",
+        "goal": "Build the allowed, region-specific reference set before producing map assets.",
+        "tasks": [
+            "Record map extent, center, profile id, and required landmarks.",
+            "Collect public or licensed imagery, elevation, parcel, road, and hydro references.",
+            "Write source provenance and license notes for every shipped derivative.",
+        ],
+        "acceptance": [
+            "Reference manifest exists and identifies allowed versus reference-only sources.",
+            "Required roads, farms, shops, and public anchors have coordinates or placement notes.",
+        ],
+    },
+    {
+        "slug": "terrain-heightmap",
+        "title": "Terrain Heightmap",
+        "goal": "Create a playable terrain base that respects the real local relief.",
+        "tasks": [
+            "Generate heightmap from approved elevation data.",
+            "Smooth gameplay-critical routes without flattening regional identity.",
+            "Audit slopes, playable bounds, and off-map containment.",
+        ],
+        "acceptance": [
+            "Heightmap and terrain scale are documented.",
+            "Vehicle routes are passable and the player cannot drive out of the playable map.",
+        ],
+    },
+    {
+        "slug": "base-map",
+        "title": "Base Map",
+        "goal": "Create the FS25 map shell, i3d references, density maps, and core XML wiring.",
+        "tasks": [
+            "Create or verify map directory structure and modDesc references.",
+            "Generate base textures, density maps, and overview assets.",
+            "Run load/package checks before adding complex content.",
+        ],
+        "acceptance": [
+            "Map loads in the toolchain without missing required files.",
+            "No generated base asset points outside the project package.",
+        ],
+    },
+    {
+        "slug": "roads",
+        "title": "Roads",
+        "goal": "Bake a drivable road network that follows real road classes and access rules.",
+        "tasks": [
+            "Survey centerlines, road class, access, and surface notes.",
+            "Bake road surfaces and shoulders with visible QA previews.",
+            "Grade road terrain and remove stray road/street artifacts.",
+        ],
+        "acceptance": [
+            "Road QA reports core routes passable and visually coherent.",
+            "No random street fragments or off-map road escapes remain.",
+        ],
+    },
+    {
+        "slug": "fields",
+        "title": "Fields",
+        "goal": "Create region-plausible playable fields and contracts.",
+        "tasks": [
+            "Survey field parcels, sizes, access points, and ownership boundaries.",
+            "Bake field surfaces and field XML from deterministic data.",
+            "Verify fields are visible, playable, buyable, and not overlapping roads/buildings.",
+        ],
+        "acceptance": [
+            "Field layout and XML audits pass.",
+            "Human tester can identify farms, fields, and workable parcels in-game.",
+        ],
+    },
+    {
+        "slug": "landmarks-shops-farmyards",
+        "title": "Landmarks, Shops, And Farmyards",
+        "goal": "Place the player-facing structures that make the map recognizable and useful.",
+        "tasks": [
+            "Survey farmyards, sheds, shops, silos, homes, and public landmarks.",
+            "Place or proxy buildings with correct access, triggers, and openable doors where expected.",
+            "Run visual QA for important anchors from player-height views.",
+        ],
+        "acceptance": [
+            "Dealer/shop, sell points, farmyards, and landmarks are visible and reachable.",
+            "Interactive structures expected by players, including shed doors, behave correctly.",
+        ],
+    },
+    {
+        "slug": "vegetation-landscape",
+        "title": "Vegetation And Landscape",
+        "goal": "Add regional vegetation, ground cover, water, and terrain dressing without hiding gameplay.",
+        "tasks": [
+            "Define tree, brush, grass, crop, and ground-cover palettes for the region.",
+            "Bake vegetation density and landscape materials from approved references.",
+            "Audit visibility, collisions, field edges, and performance.",
+        ],
+        "acceptance": [
+            "Vegetation matches the target region and does not block key gameplay routes.",
+            "Landscape QA includes both automated previews and human-drive checks.",
+        ],
+    },
+    {
+        "slug": "region-systems",
+        "title": "Region Systems",
+        "goal": "Configure gameplay systems so the map feels local, not generic.",
+        "tasks": [
+            "Configure crops, calendar, economy, traffic, snow/weather assumptions, and fill types.",
+            "Document intentional deviations from the real region for FS25 gameplay.",
+            "Run system audits for missing or conflicting XML references.",
+        ],
+        "acceptance": [
+            "Region-specific gameplay assumptions are documented.",
+            "System audit reports no broken references or missing placeable dependencies.",
+        ],
+    },
+    {
+        "slug": "package",
+        "title": "Package",
+        "goal": "Produce a clean preview zip that can be installed and tested repeatedly.",
+        "tasks": [
+            "Package the map with only allowed files and local dependencies.",
+            "Run manifest, license, missing-file, and package-size audits.",
+            "Install the preview zip into the configured FS25 mods directory.",
+        ],
+        "acceptance": [
+            "Package audit passes and reports a preview zip hash.",
+            "Installed mod zip is the same artifact produced by the package gate.",
+        ],
+    },
+    {
+        "slug": "human-test",
+        "title": "Human Verification",
+        "goal": "Prove the map works from the player seat before calling it ready.",
+        "tasks": [
+            "Load the map in FS25 and complete the morning verification checklist.",
+            "Drive roads, field access, shops, farmyards, boundaries, and landmarks.",
+            "Record failures into the fix queue before additional automation work.",
+        ],
+        "acceptance": [
+            "Human verification document is filled in with pass/fail evidence.",
+            "Blockers are either fixed or intentionally deferred with owner and reason.",
+        ],
+    },
 )
+
+DEFAULT_PHASES = tuple(str(phase["slug"]) for phase in PLANNING_PHASES)
 
 
 BOOTSTRAP_PS1 = r'''param(
@@ -102,11 +234,13 @@ def cmd_status(_: argparse.Namespace) -> int:
 def cmd_recommend(_: argparse.Namespace) -> int:
     state = load_state()
     print("Recommended next FS25 action:")
-    print("  Turn docs/fs25_project_brief.md into the first deterministic source/reference slice.")
+    print("  Work from .planning/STATE.md and .planning/TASKS.md, starting with source-reference.")
     print("")
     print("Useful commands:")
     print("  .\\scripts\\fs25.ps1 status")
     print("  .\\scripts\\fs25.ps1 list")
+    if state.get("mode") in {"init", "adopt"}:
+        print("  Ask Codex or Claude to run the next planned FS25 slice.")
     return 0
 
 
@@ -321,7 +455,6 @@ def apply_defaults(args: argparse.Namespace, mode: str) -> tuple[tuple[float, fl
 
 
 def profile_payload(args: argparse.Namespace, bbox: tuple[float, float, float, float]) -> dict[str, object]:
-    preview_zip = args.preview_zip or f"build/FS25_{args.profile_id}_preview.zip"
     return {
         "profile_id": args.profile_id,
         "description": args.description or f"{args.project_name} FS25 map",
@@ -331,25 +464,483 @@ def profile_payload(args: argparse.Namespace, bbox: tuple[float, float, float, f
         "bbox_wgs84_wsen": list(bbox),
         "center_wgs84_lat_lon": [args.center_lat, args.center_lon],
         "build_dir": f"build/{args.profile_id}",
-        "preview_zip": preview_zip,
+        "preview_zip": preview_zip_value(args),
     }
 
 
-def state_payload(args: argparse.Namespace, profile_path: Path, landmarks: list[str], mode: str) -> dict[str, object]:
+def preview_zip_value(args: argparse.Namespace) -> str:
+    return str(args.preview_zip or f"build/FS25_{args.profile_id}_preview.zip")
+
+
+def state_payload(
+    args: argparse.Namespace,
+    profile_path: Path,
+    landmarks: list[str],
+    mode: str,
+    bbox: tuple[float, float, float, float],
+) -> dict[str, object]:
     payload: dict[str, object] = {
         "schema": "fs25-map-builder.project.v1",
         "mode": mode,
         "project_name": args.project_name,
         "location": args.location,
         "map_size_m": args.map_size_m,
+        "center_lat": args.center_lat,
+        "center_lon": args.center_lon,
+        "bbox_wsen": list(bbox),
         "profile_path": str(profile_path).replace("\\", "/"),
-        "preview_zip": args.preview_zip or f"build/FS25_{args.profile_id}_preview.zip",
+        "preview_zip": preview_zip_value(args),
         "mods_dir": args.mods_dir or "",
         "landmarks": landmarks,
         "phases": list(DEFAULT_PHASES),
+        "active_gate": DEFAULT_PHASES[0],
         "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
     }
     return payload
+
+
+def markdown_list(items: Iterable[str], fallback: str) -> list[str]:
+    lines = [f"- {item}" for item in items]
+    return lines or [f"- {fallback}"]
+
+
+def markdown_checklist(items: Iterable[str], fallback: str) -> list[str]:
+    lines = [f"- [ ] {item}" for item in items]
+    return lines or [f"- [ ] {fallback}"]
+
+
+def phase_items(phase: dict[str, object], key: str) -> list[str]:
+    raw = phase.get(key, [])
+    if isinstance(raw, list):
+        return [str(item) for item in raw]
+    return []
+
+
+def phase_dir_name(index: int, phase: dict[str, object]) -> str:
+    return f"{index:02d}-{phase['slug']}"
+
+
+def project_markdown(
+    args: argparse.Namespace,
+    bbox: tuple[float, float, float, float],
+    landmarks: list[str],
+    profile_path: Path,
+) -> str:
+    return "\n".join(
+        [
+            "# FS25 Project",
+            "",
+            "Generated by `fs25-init` / `fs25-adopt`.",
+            "",
+            "## Project",
+            "",
+            f"- Name: `{args.project_name}`",
+            f"- Location: `{args.location}`",
+            f"- Profile id: `{args.profile_id}`",
+            f"- Profile path: `{profile_path}`",
+            f"- Map size: `{args.map_size_m}` m",
+            f"- Center lat/lon: `{args.center_lat}`, `{args.center_lon}`",
+            f"- BBox W/S/E/N: `{bbox[0]}`, `{bbox[1]}`, `{bbox[2]}`, `{bbox[3]}`",
+            f"- Preview zip: `{preview_zip_value(args)}`",
+            "",
+            "## Required Anchors",
+            "",
+            *markdown_list(landmarks, "Add landmarks, farms, shops, fields, and public reference anchors."),
+            "",
+            "## Agent Contract",
+            "",
+            "- The user invokes `$fs25-*` or `/fs25-*`; Codex or Claude runs the scripts and reports results.",
+            "- Do not ask the user to run wrapper commands unless they explicitly want to.",
+            "- Preserve existing map work during adoption unless `--force` is explicitly requested.",
+            "- Treat every generated map feature as incomplete until it has automated QA and human verification evidence.",
+            "",
+        ]
+    )
+
+
+def roadmap_markdown() -> str:
+    rows = [
+        "| Phase | Goal | Done When |",
+        "| --- | --- | --- |",
+    ]
+    for index, phase in enumerate(PLANNING_PHASES, start=1):
+        acceptance = phase_items(phase, "acceptance")
+        done_when = acceptance[0] if acceptance else "Acceptance is documented."
+        rows.append(f"| {index:02d}. {phase['title']} | {phase['goal']} | {done_when} |")
+    return "\n".join(
+        [
+            "# FS25 Roadmap",
+            "",
+            "This roadmap is generated during project init/adoption and should be updated as slices become real.",
+            "",
+            *rows,
+            "",
+            "## Operating Rule",
+            "",
+            "Advance only when the current phase has fresh automated evidence or is explicitly blocked on human verification.",
+            "",
+        ]
+    )
+
+
+def requirements_markdown(args: argparse.Namespace, landmarks: list[str]) -> str:
+    return "\n".join(
+        [
+            "# FS25 Requirements",
+            "",
+            "Requirements are grouped by FS25 production gate and traced back to the authoritative docs.",
+            "",
+            "## Map Scope",
+            "",
+            f"- Build a `{args.map_size_m}` m FS25 map for `{args.location}`.",
+            "- Preserve regional identity in terrain, roads, farms, buildings, vegetation, and gameplay systems.",
+            "- Keep shipped content license-safe and reproducible from documented sources.",
+            "",
+            "## Required Anchors",
+            "",
+            *markdown_list(landmarks, "Add required farms, shops, landmarks, field areas, and access roads."),
+            "",
+            "## Gate Requirements",
+            "",
+            *[f"- `{phase['slug']}`: {phase['goal']}" for phase in PLANNING_PHASES],
+            "",
+            "## Verification Requirements",
+            "",
+            "- Automated QA must write a durable artifact before a gate can be marked complete.",
+            "- Human verification is required for load, driving, boundaries, fields, shops, save/reload, and performance.",
+            "- Failures belong in `docs/fs25_fix_queue.md` until fixed or explicitly deferred.",
+            "",
+        ]
+    )
+
+
+def state_markdown(args: argparse.Namespace, mode: str) -> str:
+    return "\n".join(
+        [
+            "# FS25 State",
+            "",
+            f"- Project: `{args.project_name}`",
+            f"- Mode: `{mode}`",
+            f"- Generated: `{datetime.now().astimezone().isoformat(timespec='seconds')}`",
+            "- Current milestone: `fs25-map-ready`",
+            "- Current phase: `01-source-reference`",
+            "- FS25 source of truth: `docs/fs25_map_state.md`",
+            "- Next recommended action: build/verify the source-reference slice, then update this file.",
+            "",
+            "## Stop Conditions",
+            "",
+            "- A generator changes shipped content without a matching QA artifact.",
+            "- A source lacks provenance or license notes.",
+            "- A player-facing issue appears in roads, fields, buildings, boundaries, or save/load behavior.",
+            "- Human verification finds a blocker.",
+            "",
+            "## Handoff Notes",
+            "",
+            "- Keep `docs/fs25_project_brief.md`, `.planning/TASKS.md`, and this file current.",
+            "- Put failures into a fix queue before starting another visual/content phase.",
+            "",
+        ]
+    )
+
+
+def tasks_markdown() -> str:
+    lines = [
+        "# FS25 Tasks",
+        "",
+        "Generated project task list. Check items only after fresh evidence exists.",
+        "",
+    ]
+    for index, phase in enumerate(PLANNING_PHASES, start=1):
+        lines.extend(
+            [
+                f"## {index:02d}. {phase['title']}",
+                "",
+                *markdown_checklist(phase_items(phase, "tasks"), "Define phase tasks."),
+                "",
+                "### Acceptance",
+                "",
+                *markdown_checklist(phase_items(phase, "acceptance"), "Define phase acceptance evidence."),
+                "",
+            ]
+        )
+    return "\n".join(lines)
+
+
+def milestone_markdown(args: argparse.Namespace) -> str:
+    phase_lines = [f"- [ ] {index:02d}. {phase['title']}: {phase['goal']}" for index, phase in enumerate(PLANNING_PHASES, start=1)]
+    return "\n".join(
+        [
+            "# Milestone: FS25 Map Ready",
+            "",
+            f"Project: `{args.project_name}`",
+            "",
+            "## Outcome",
+            "",
+            "A packaged FS25 preview map that loads, drives, saves, and represents the target region well enough for human verification.",
+            "",
+            "## Phase Checklist",
+            "",
+            *phase_lines,
+            "",
+            "## Required Evidence",
+            "",
+            "- Source provenance and license audit.",
+            "- Terrain, road, field, farmyard/shop, vegetation, and package QA artifacts.",
+            "- Installed preview zip hash.",
+            "- Completed human verification checklist.",
+            "",
+        ]
+    )
+
+
+def phase_plan_markdown(index: int, phase: dict[str, object]) -> str:
+    return "\n".join(
+        [
+            f"# Phase {index:02d}: {phase['title']}",
+            "",
+            "## Goal",
+            "",
+            str(phase["goal"]),
+            "",
+            "## Tasks",
+            "",
+            *markdown_checklist(phase_items(phase, "tasks"), "Define phase tasks."),
+            "",
+            "## QA Gates",
+            "",
+            *markdown_checklist(phase_items(phase, "acceptance"), "Define acceptance evidence."),
+            "",
+            "## Notes",
+            "",
+            "- Prefer deterministic generators and repeatable audits over hand edits.",
+            "- Record regional assumptions and source provenance in the project docs.",
+            "- Leave this phase open until evidence is current.",
+            "",
+        ]
+    )
+
+
+def docs_milestone_plan_markdown() -> str:
+    return "\n".join(
+        [
+            "# FS25 Milestone Plan",
+            "",
+            "Codex/Claude should use `.planning/STATE.md`, `.planning/TASKS.md`, and `.planning/phases/*/PLAN.md` as the work queue.",
+            "",
+            "## Commands",
+            "",
+            "Ask the agent for `$fs25-progress`, `$fs25-next`, `$fs25-start`, or `$fs25-adopt`; the agent should run the wrapper and summarize results.",
+            "",
+            "## Phase Order",
+            "",
+            *[f"- {index:02d}. {phase['title']} (`{phase['slug']}`)" for index, phase in enumerate(PLANNING_PHASES, start=1)],
+            "",
+            "## Human Gate",
+            "",
+            "The final ready decision belongs to the FS25 human verification checklist, not to generated files alone.",
+            "",
+        ]
+    )
+
+
+def map_state_markdown(
+    args: argparse.Namespace,
+    bbox: tuple[float, float, float, float],
+    profile_path: Path,
+    *,
+    mode: str,
+) -> str:
+    rows = [
+        "| Stage | Status | Evidence | Blocker |",
+        "| --- | --- | --- | --- |",
+    ]
+    for index, phase in enumerate(PLANNING_PHASES, start=1):
+        status = "active" if index == 1 else "pending"
+        rows.append(f"| {phase['slug']} | {status} | `.planning/phases/{phase_dir_name(index, phase)}/PLAN.md` |  |")
+    return "\n".join(
+        [
+            "# FS25 Map State",
+            "",
+            f"- Last updated: `{datetime.now().astimezone().isoformat(timespec='seconds')}`",
+            f"- Active map: `{args.project_name}`",
+            f"- Adoption mode: `{mode}`",
+            "- Overall status: `planning`",
+            "- Current gate: `source-reference`",
+            f"- Profile: `{profile_path}`",
+            f"- Preview zip: `{preview_zip_value(args)}`",
+            "",
+            "## Scope",
+            "",
+            f"- Location: `{args.location}`",
+            f"- Map size: `{args.map_size_m}` m",
+            f"- Center lat/lon: `{args.center_lat}`, `{args.center_lon}`",
+            f"- BBox W/S/E/N: `{bbox[0]}`, `{bbox[1]}`, `{bbox[2]}`, `{bbox[3]}`",
+            "",
+            "## Stage Board",
+            "",
+            *rows,
+            "",
+            "## Current Focus",
+            "",
+            "- Build the source/reference gate and record source provenance before new generated map content.",
+            "",
+            "## Evidence Ledger",
+            "",
+            "- TODO: add source manifest, QA reports, package audit, preview hash, and human verification evidence.",
+            "",
+            "## Automation Inventory",
+            "",
+            "- `scripts/fs25.ps1`: agent-facing command wrapper.",
+            "- `scripts/fs25.py`: project automation entrypoint.",
+            "- `.fs25-map-builder.json`: machine-readable project state.",
+            "",
+            "## Human Review Needed",
+            "",
+            "- Load, driveability, roads, fields, shops/farmyards, boundaries, save/reload, and performance.",
+            "",
+            "## Ship Constraints",
+            "",
+            "- No missing local references.",
+            "- No unlicensed shipped derivatives.",
+            "- No known blockers in `docs/fs25_fix_queue.md`.",
+            "",
+        ]
+    )
+
+
+def fix_queue_markdown() -> str:
+    return "\n".join(
+        [
+            "# FS25 Fix Queue",
+            "",
+            "Record every failed QA or human verification finding here before starting another content gate.",
+            "",
+            "## Open Issues",
+            "",
+            "| ID | Severity | Stage | Status | Issue | Evidence | Next action |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| FQ-001 | info | source-reference | placeholder | Replace this row with the first real issue. |  |  |",
+            "",
+            "## Closed Issues",
+            "",
+            "| ID | Severity | Stage | Status | Fix/defer reason | Verification |",
+            "| --- | --- | --- | --- | --- | --- |",
+            "",
+            "## Queue Rules",
+            "",
+            "- Do not close an issue without fresh verification evidence.",
+            "- Use blocker severity for load failures, broken save/reload, out-of-map escape, or unusable core gameplay.",
+            "- Deferred issues need an explicit reason and the next milestone where they will be revisited.",
+            "",
+        ]
+    )
+
+
+def gsd_chain_markdown() -> str:
+    rows = [
+        "| GSD phase | FS25 gate | Source of truth | Exit evidence |",
+        "| --- | --- | --- | --- |",
+    ]
+    for phase in PLANNING_PHASES:
+        rows.append(f"| `{phase['slug']}` | `{phase['slug']}` | `docs/fs25_map_state.md` | QA artifact or human note |")
+    return "\n".join(
+        [
+            "# FS25 GSD Chain",
+            "",
+            "FS25 state is authoritative; `.planning` mirrors routing so agents can stay on task.",
+            "",
+            "## Gate Mapping",
+            "",
+            *rows,
+            "",
+            "## Routing Rules",
+            "",
+            "- `what next`: read `docs/fs25_map_state.md`, `.planning/STATE.md`, and `.planning/TASKS.md`.",
+            "- `do it`: run the applicable `$fs25-*` command or wrapper and update evidence.",
+            "- `plan`: create or update the smallest needed phase plan before implementation.",
+            "- `pause` or `handoff`: update state, fix queue, evidence links, and next action.",
+            "",
+            "## Verification Rule",
+            "",
+            "No gate is complete until current evidence is present in docs, tests, or human verification.",
+            "",
+        ]
+    )
+
+
+def human_verification_markdown() -> str:
+    return "\n".join(
+        [
+            "# Morning Human Verification",
+            "",
+            "Complete this in FS25 after the preview zip is installed.",
+            "",
+            "## Checklist",
+            "",
+            "- [ ] Install/load: map appears in FS25 and starts without fatal errors.",
+            "- [ ] Primary route: drive the main road loop without harsh terrain jolts or random road artifacts.",
+            "- [ ] Boundary: attempt edge routes and verify the player cannot drive off the map.",
+            "- [ ] Fields: fields are visible, accessible, and usable for expected gameplay.",
+            "- [ ] Dealer/shop: shop/dealer/sell areas are visible, reachable, and functional.",
+            "- [ ] Farmyards/buildings: expected doors, sheds, and yards behave correctly.",
+            "- [ ] Save/reload: save, exit, reload, and confirm player state persists.",
+            "- [ ] Performance: note load time, stutter, and obvious frame drops.",
+            "- [ ] Evidence: capture screenshots/log notes for failures.",
+            "",
+            "## Failure Recording",
+            "",
+            "Put every failure in `docs/fs25_fix_queue.md` with severity, evidence, and next action.",
+            "",
+        ]
+    )
+
+
+def project_management_results(
+    project: Path,
+    args: argparse.Namespace,
+    bbox: tuple[float, float, float, float],
+    profile_path: Path,
+    *,
+    mode: str,
+    overwrite: bool,
+) -> list[WriteResult]:
+    return [
+        write_file(project / "docs" / "fs25_map_state.md", map_state_markdown(args, bbox, profile_path, mode=mode), overwrite=overwrite),
+        write_file(project / "docs" / "fs25_fix_queue.md", fix_queue_markdown(), overwrite=overwrite),
+        write_file(project / "docs" / "fs25_gsd_chain.md", gsd_chain_markdown(), overwrite=overwrite),
+        write_file(project / "docs" / "morning_human_verification.md", human_verification_markdown(), overwrite=overwrite),
+    ]
+
+
+def planning_results(
+    project: Path,
+    args: argparse.Namespace,
+    bbox: tuple[float, float, float, float],
+    landmarks: list[str],
+    profile_path: Path,
+    *,
+    mode: str,
+    overwrite: bool,
+) -> list[WriteResult]:
+    planning_dir = project / ".planning"
+    results = [
+        write_file(planning_dir / "PROJECT.md", project_markdown(args, bbox, landmarks, profile_path), overwrite=overwrite),
+        write_file(planning_dir / "REQUIREMENTS.md", requirements_markdown(args, landmarks), overwrite=overwrite),
+        write_file(planning_dir / "ROADMAP.md", roadmap_markdown(), overwrite=overwrite),
+        write_file(planning_dir / "STATE.md", state_markdown(args, mode), overwrite=overwrite),
+        write_file(planning_dir / "TASKS.md", tasks_markdown(), overwrite=overwrite),
+        write_file(planning_dir / "milestones" / "fs25-map-ready.md", milestone_markdown(args), overwrite=overwrite),
+        write_file(project / "docs" / "fs25_milestone_plan.md", docs_milestone_plan_markdown(), overwrite=overwrite),
+    ]
+    for index, phase in enumerate(PLANNING_PHASES, start=1):
+        results.append(
+            write_file(
+                planning_dir / "phases" / phase_dir_name(index, phase) / "PLAN.md",
+                phase_plan_markdown(index, phase),
+                overwrite=overwrite,
+            )
+        )
+    return results
 
 
 def brief_markdown(args: argparse.Namespace, bbox: tuple[float, float, float, float], landmarks: list[str]) -> str:
@@ -441,9 +1032,10 @@ def run_init(args: argparse.Namespace) -> int:
     bbox, landmarks, profile_path = apply_defaults(args, "init")
     results = [
         write_json(args.project / profile_path, profile_payload(args, bbox), overwrite=args.force),
-        write_json(args.project / ".fs25-map-builder.json", state_payload(args, profile_path, landmarks, "init"), overwrite=args.force),
+        write_json(args.project / ".fs25-map-builder.json", state_payload(args, profile_path, landmarks, "init", bbox), overwrite=args.force),
         write_file(args.project / "docs" / "fs25_project_brief.md", brief_markdown(args, bbox, landmarks), overwrite=args.force),
-        write_file(args.project / "docs" / "morning_human_verification.md", "# Morning Human Verification\n\n- TODO: add load, drive, boundary, field, save/reload, and performance checklist.\n", overwrite=args.force),
+        *project_management_results(args.project, args, bbox, profile_path, mode="init", overwrite=args.force),
+        *planning_results(args.project, args, bbox, landmarks, profile_path, mode="init", overwrite=args.force),
         write_file(args.project / "scripts" / "fs25.ps1", BOOTSTRAP_PS1, overwrite=args.force),
         write_file(args.project / "scripts" / "fs25.py", BOOTSTRAP_PY, overwrite=args.force),
     ]
@@ -461,17 +1053,15 @@ def run_adopt(args: argparse.Namespace) -> int:
     args.project.mkdir(parents=True, exist_ok=True)
     signals = project_signals(args.project)
 
-    results: list[WriteResult] = []
-    if not (args.project / ".fs25-map-builder.json").exists() or args.force:
-        results.append(write_json(args.project / ".fs25-map-builder.json", state_payload(args, profile_path, landmarks, "adopt"), overwrite=args.force))
-    if not (args.project / profile_path).exists() or args.force:
-        results.append(write_json(args.project / profile_path, profile_payload(args, bbox), overwrite=args.force))
-    if not (args.project / "docs" / "fs25_project_brief.md").exists() or args.force:
-        results.append(write_file(args.project / "docs" / "fs25_project_brief.md", brief_markdown(args, bbox, landmarks), overwrite=args.force))
-    if not (args.project / "scripts" / "fs25.ps1").exists() or args.force:
-        results.append(write_file(args.project / "scripts" / "fs25.ps1", BOOTSTRAP_PS1, overwrite=args.force))
-    if not (args.project / "scripts" / "fs25.py").exists() or args.force:
-        results.append(write_file(args.project / "scripts" / "fs25.py", BOOTSTRAP_PY, overwrite=args.force))
+    results: list[WriteResult] = [
+        write_json(args.project / ".fs25-map-builder.json", state_payload(args, profile_path, landmarks, "adopt", bbox), overwrite=args.force),
+        write_json(args.project / profile_path, profile_payload(args, bbox), overwrite=args.force),
+        write_file(args.project / "docs" / "fs25_project_brief.md", brief_markdown(args, bbox, landmarks), overwrite=args.force),
+        *project_management_results(args.project, args, bbox, profile_path, mode="adopt", overwrite=args.force),
+        *planning_results(args.project, args, bbox, landmarks, profile_path, mode="adopt", overwrite=args.force),
+        write_file(args.project / "scripts" / "fs25.ps1", BOOTSTRAP_PS1, overwrite=args.force),
+        write_file(args.project / "scripts" / "fs25.py", BOOTSTRAP_PY, overwrite=args.force),
+    ]
     adoption_doc = adoption_markdown(args.project, signals, results)
     results.append(write_file(args.project / "docs" / "fs25_adoption.md", adoption_doc, overwrite=True))
 
@@ -491,6 +1081,7 @@ def run_questions(args: argparse.Namespace) -> int:
     print("5. Which landmarks, shops, farmyards, and public anchors must be represented?")
     print("6. Which data/license constraints or paid/public imagery sources are acceptable?")
     print("7. Where is the FS25 mods folder, if install automation should be enabled?")
+    print("8. Should existing planning/state docs be preserved, or regenerated with --force?")
     return 0
 
 

@@ -1,1 +1,1 @@
-Use the `fs25-adopt` skill. Inspect the existing project, infer profile details when possible, and attach the FS25 Map Builder wrapper/brief without overwriting local work.
+Use the `fs25-adopt` skill. Inspect the existing project, infer profile details when possible, run the bundled helper, and attach the FS25 Map Builder wrapper, source-of-truth docs, milestone, roadmap, tasks, and phase plans without overwriting local work.

@@ -1,4 +1,4 @@
 interface:
   display_name: "FS25 Adopt"
-  short_description: "Attach FS25 builder to an existing project"
-  default_prompt: "Use $fs25-adopt to inspect this repo and add the FS25 Map Builder wrapper and brief."
+  short_description: "Adopt an existing FS25 map project"
+  default_prompt: "Use $fs25-adopt to inspect this repo, run the adoption helper, and add FS25 planning docs/tasks without overwriting local work."

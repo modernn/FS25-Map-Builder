@@ -17,7 +17,7 @@ Run the map as small slices:
 4. Stop on failure.
 5. Record evidence before claiming anything is done.
 
-For a new project, use `$fs25-init` first. For an existing project without a wrapper, use `$fs25-adopt` first.
+For a new project, use `$fs25-init` first. For an existing project without a wrapper or planning bundle, use `$fs25-adopt` first. The agent should run helper commands for the user and report evidence, not hand off raw scripts for the user to run.
 
 ## Expected Project Wrapper
 
@@ -42,6 +42,8 @@ python <this-skill>\scripts\project_setup.py init --project <path> --project-nam
 python <this-skill>\scripts\project_setup.py init --project <path> --project-name "<name>" --location "<place>" --map-size-m <meters> --bbox-wgs84-wsen=<west,south,east,north>
 python <this-skill>\scripts\project_setup.py adopt --project <existing-path>
 ```
+
+Init/adopt creates the FS25 source-of-truth docs (`docs/fs25_map_state.md`, `docs/fs25_fix_queue.md`, `docs/fs25_gsd_chain.md`) plus a `.planning` mirror with milestone, roadmap, requirements, tasks, and phase plans.
 
 ## Commands
 

@@ -82,9 +82,9 @@ scripts/fs25.py
 
 Use `templates/project-wrapper/` as a starter, or keep using the wrapper from the Focused Butte map repo.
 
-For a new project, use `$fs25-init` or `/fs25-init`; it asks the setup questions and creates a brief/profile/bootstrap wrapper.
+For a new project, use `$fs25-init` or `/fs25-init`; it asks the setup questions, then the agent runs the helper to create a brief/profile/bootstrap wrapper plus a milestone, roadmap, requirements, tasks, phase plans, map state, fix queue, and human verification checklist.
 
-For an existing project, use `$fs25-adopt` or `/fs25-adopt`; it inspects the repo, keeps existing wrappers/profiles when present, and writes adoption notes.
+For an existing project, use `$fs25-adopt` or `/fs25-adopt`; it inspects the repo, keeps existing wrappers/profiles when present, and writes adoption notes plus the same planning bundle. The intent is that Codex or Claude runs the helper for you and reports the result.
 
 ## Updating From A Map Project
 

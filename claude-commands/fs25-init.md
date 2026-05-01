@@ -1,1 +1,1 @@
-Use the `fs25-init` skill. Ask the missing setup questions, then initialize a new FS25 map project with the bundled project setup helper.
+Use the `fs25-init` skill. Ask the missing setup questions, then run the bundled project setup helper to create the new FS25 project scaffold, source-of-truth docs, milestone, roadmap, tasks, and phase plans.

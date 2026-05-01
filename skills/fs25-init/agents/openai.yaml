@@ -1,4 +1,4 @@
 interface:
   display_name: "FS25 Init"
   short_description: "Start a new FS25 map project"
-  default_prompt: "Use $fs25-init to ask the setup questions and create a new FS25 map project brief and scaffold."
+  default_prompt: "Use $fs25-init to ask the setup questions, run the setup helper, and create an FS25 project scaffold with milestone plans and tasks."
